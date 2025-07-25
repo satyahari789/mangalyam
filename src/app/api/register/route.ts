@@ -1,42 +1,41 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '../../lib/prisma';
-import { writeFile } from 'fs/promises';
-import path from 'path';
 
-export async function POST(req: NextRequest) {
-  const data = await req.formData();
+export async function POST(req: Request) {
+  try {
+    const formData = await req.formData();
 
-  const firstName = data.get('firstName') as string;
-  const phone = data.get('phone') as string;
-  const dob = data.get('dob') as string;
-  const gender = data.get('gender') as string;
-  const education = data.get('education') as string;
-  const idType = data.get('idType') as string;
+    const firstName = formData.get('firstName') as string;
+    const phone = formData.get('phone') as string;
+    const dob = formData.get('dob') as string;
+    const gender = formData.get('gender') as string;
+    const education = formData.get('education') as string;
+    const idType = formData.get('idType') as string | null;
+    const idFile = formData.get('idFile');
 
-  let idFilePath: string | null = null;
-  const idFile = data.get('idFile') as File;
+    let fileValue: string | undefined = undefined;
 
-  if (idFile && idFile.name) {
-    const bytes = await idFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const fileName = `${Date.now()}-${idFile.name}`;
-    const filePath = path.join(process.cwd(), 'public', 'uploads', fileName);
+    if (idFile && idFile instanceof File) {
+      const buffer = Buffer.from(await idFile.arrayBuffer());
+      // Store as Base64 string (for demo, not recommended for large files)
+      fileValue = buffer.toString('base64');
+    }
 
-    await writeFile(filePath, buffer);
-    idFilePath = `/uploads/${fileName}`;
+    const newUser = await prisma.user.create({
+      data: {
+        firstName,
+        phone,
+        dob,
+        gender,
+        education,
+        idType: idType || undefined,
+        idFile: fileValue,
+      },
+    });
+
+    return NextResponse.json({ message: 'Registered', userId: newUser.id }, { status: 200 });
+  } catch (error) {
+    console.error('Registration error:', error);
+    return NextResponse.json({ error: 'Server error during registration' }, { status: 500 });
   }
-
-  const user = await prisma.user.create({
-    data: {
-      firstName,
-      phone,
-      dob,
-      gender,
-      education,
-      idType,
-      idFile: idFilePath || undefined,
-    },
-  });
-
-  return NextResponse.json({ message: 'User created', user });
 }

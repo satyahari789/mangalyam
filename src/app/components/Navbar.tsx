@@ -109,7 +109,7 @@ export default function Navbar() {
               )}
             </div>
 
-            <Link href="/login" className="text-neutral.light hover:text-brand.accent transition-colors font-semibold">
+            <Link href="/log" className="text-neutral.light hover:text-brand.accent transition-colors font-semibold">
               Login
             </Link>
             <Link

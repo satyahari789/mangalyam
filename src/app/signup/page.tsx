@@ -78,6 +78,7 @@ export default function SignUpPage() {
         <PhoneInput
           placeholder="Enter Phone number"
           defaultCountry="IN"
+          //defaultCountrycode="+91"
           value={phone}
           onChange={setPhone} 
           className="w-full border rounded-full px-4 py-2 focus:ring-blue-400 focus:outline-none  "
